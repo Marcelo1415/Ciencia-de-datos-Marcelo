@@ -1,0 +1,175 @@
+# Pregunta 1 - Obtener datos históricos de Tesla
+import yfinance as yf
+import pandas as pd
+
+tesla = yf.Ticker("TSLA")
+tesla_data = tesla.history(period="max")
+
+# Restablecer índice para tener la columna Date visible
+tesla_data.reset_index(inplace=True)
+
+# Mostrar primeras 5 filas como pide la Pregunta 1
+print("🟢 Tesla - Datos históricos de acciones:")
+display(tesla_data.head())
+import pandas as pd
+import requests
+from bs4 import BeautifulSoup
+
+# URL fija del curso
+url = "https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBMDeveloperSkillsNetwork-PY0220EN-SkillsNetwork/labs/project/revenue.htm"
+
+# Obtener HTML
+response = requests.get(url)
+soup = BeautifulSoup(response.text, "html.parser")
+
+# Buscar tablas
+tables = soup.find_all("table")
+print(f"🔍 Se encontraron {len(tables)} tablas.")
+
+# Visualizar las primeras líneas de todas las tablas encontradas
+for idx, table in enumerate(tables):
+    print(f"\n🔎 Vista previa de tabla {idx}:")
+    df_temp = pd.read_html(str(table))[0]
+    print(df_temp.head(3))  # Ver primeras 3 filas para reconocer la correcta
+
+# Intentar cargar la tabla específica de Tesla
+tesla_revenue = None
+for table in tables:
+    if "Tesla Revenue" in table.text:
+        df = pd.read_html(str(table))[0]
+        df.columns = ["Date", "Revenue"]
+        tesla_revenue = df
+        break
+
+# Validar si se encontró
+if tesla_revenue is not None:
+    print("\n✅ Tabla de ingresos de Tesla encontrada.")
+    
+    # Eliminar filas vacías o que no tengan formato correcto
+    tesla_revenue["Revenue"] = tesla_revenue["Revenue"].astype(str)
+    tesla_revenue = tesla_revenue[tesla_revenue["Revenue"].str.contains(r"\d")]
+    tesla_revenue = tesla_revenue[tesla_revenue["Date"].str.contains(r"\d")]
+    
+    tesla_revenue.reset_index(drop=True, inplace=True)
+    print("🟢 Últimas 5 filas:")
+    display(tesla_revenue.tail())
+
+else:
+    print("❌ No se encontró la tabla de ingresos de Tesla.")
+# Pregunta 1 - Obtener datos históricos de Tesla
+import yfinance as yf
+import pandas as pd
+
+tesla = yf.Ticker("TSLA")
+tesla_data = tesla.history(period="max")
+
+# Restablecer índice para tener la columna Date visible
+tesla_data.reset_index(inplace=True)
+
+# Mostrar primeras 5 filas como pide la Pregunta 1
+print("🟢 Tesla - Datos históricos de acciones:")
+display(tesla_data.head())
+# Pregunta 3 - Obtener datos históricos de GameStop
+gme = yf.Ticker("GME")
+gme_data = gme.history(period="max")
+
+# Restablecer índice para tener la columna Date visible
+gme_data.reset_index(inplace=True)
+
+# Mostrar primeras 5 filas como pide la Pregunta 3
+print("🟢 GameStop - Datos históricos de acciones:")
+display(gme_data.head())
+import requests
+from bs4 import BeautifulSoup
+import pandas as pd
+
+# URL del archivo proporcionado por IBM con los datos estáticos de GME
+url = "https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBMDeveloperSkillsNetwork-PY0220EN-SkillsNetwork/labs/project/revenue.htm"
+
+# Hacemos la solicitud
+response = requests.get(url)
+soup = BeautifulSoup(response.text, "html.parser")
+
+# Buscar la tabla correcta que contiene "GameStop"
+tables = soup.find_all("table")
+gme_revenue = None
+
+for table in tables:
+    if "GameStop Revenue" in table.text:
+        gme_revenue = pd.read_html(str(table))[0]
+        break
+
+# Validamos y limpiamos el DataFrame
+if gme_revenue is not None:
+    gme_revenue.columns = ["Date", "Revenue"]
+    
+    # Aseguramos que todos los valores de 'Revenue' sean string antes de aplicar .str
+    gme_revenue["Revenue"] = gme_revenue["Revenue"].astype(str)
+    
+    # Limpiar valores
+    gme_revenue["Revenue"] = gme_revenue["Revenue"].str.replace(",", "").str.replace("$", "")
+    gme_revenue.dropna(inplace=True)
+    gme_revenue = gme_revenue[gme_revenue["Revenue"] != ""]
+    
+    # Mostrar las últimas 5 filas como pide la pregunta
+    print("🟢 GameStop - Ingresos (últimas 5 filas):")
+    display(gme_revenue.tail())
+
+else:
+    print("⚠️ No se encontró la tabla de ingresos de GameStop.")
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+
+# Función para crear el gráfico de precios de acciones
+def make_graph(stock_data, stock_revenue, stock, title):
+    fig = make_subplots(rows=2, cols=1, shared_xaxes=True,
+                        vertical_spacing=0.2,
+                        subplot_titles=(f"{title} Historical Share Price", f"{title} Quarterly Revenue"),
+                        row_width=[0.4, 0.6])
+
+    # Gráfico de líneas del precio de cierre
+    fig.add_trace(go.Scatter(x=stock_data.index, y=stock_data['Close'], name="Precio de cierre"),
+                  row=1, col=1)
+
+    # Gráfico de barras del ingreso trimestral
+    fig.add_trace(go.Bar(x=stock_revenue['Date'], y=stock_revenue['Revenue'], name="Ingresos"),
+                  row=2, col=1)
+
+    fig.update_layout(height=600, width=800,
+                      title_text=f"{title} Stock Price and Revenue",
+                      showlegend=False)
+    
+    fig.show()
+
+# Llamar a la función para Tesla
+make_graph(tesla_data, tesla_revenue, 'Tesla', 'Tesla')
+
+import requests
+import pandas as pd
+from bs4 import BeautifulSoup
+
+# Función corregida para obtener ingresos de GameStop
+def get_gme_revenue():
+    url = "https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBMDeveloperSkillsNetwork-PY0220EN-SkillsNetwork/labs/project/revenue.htm"
+    r = requests.get(url)
+    soup = BeautifulSoup(r.text, "html.parser")
+    tables = soup.find_all("table")
+
+    for table in tables:
+        if "GameStop Revenue" in table.text:
+            df = pd.read_html(str(table))[0]
+            df.columns = ["Date", "Revenue"]
+            df = df[df["Revenue"].astype(str).str.contains(r"\$")]  # nos aseguramos de mantener solo filas válidas
+            return df.reset_index(drop=True)
+
+    return pd.DataFrame(columns=["Date", "Revenue"])  # Retorna dataframe vacío si no encuentra
+
+# Ejecutar función
+gme_revenue = get_gme_revenue()
+
+# Mostrar últimas 5 filas como prueba
+print("✅ Últimos ingresos de GameStop:")
+print(gme_revenue.tail())
+
+make_graph(gme_data, gme_revenue, 'GameStop', 'GameStop Stock Price and Revenue')
+
